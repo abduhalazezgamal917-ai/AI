@@ -25,9 +25,9 @@ def ask_llama(text):
         if response.status_code == 200:
             return response.json()["choices"][0]["message"]["content"]
         else:
-            return "عذراً، أواجه ضغطاً في الاتصال حالياً. حاول مجدداً!"
+            return f"❌ خطأ API ({response.status_code}):\n{response.text}"
     except Exception as e:
-        return "حدث خطأ في الاتصال بالخادم."
+        return f"❌ خطأ في السيرفر: {str(e)}"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -45,4 +45,4 @@ if __name__ == "__main__":
     
     print("البوت يعمل الآن على تيليجرام...")
     bot.infinity_polling()
-  
+
