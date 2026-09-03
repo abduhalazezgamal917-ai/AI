@@ -3,7 +3,6 @@ import telebot
 import requests
 from keep_alive import keep_alive
 
-# سحب التوكن ومفتاح الذكاء الاصطناعي من متغيرات البيئة بأمان
 TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
@@ -16,7 +15,7 @@ def ask_llama(text):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama-3.3-70b-versatile",
+        "model": "llama-3.1-70b-versatile",
         "messages": [{"role": "user", "content": text}]
     }
     
@@ -31,7 +30,7 @@ def ask_llama(text):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك! أنا بوت ذكاء اصطناعي مدعوم بنموذج Llama 3 القوي. تفضل بسؤالي عن أي شيء.")
+    bot.reply_to(message, "أهلاً بك! أنا بوت ذكاء اصطناعي مدعوم بنموذج Llama القوي. تفضل بسؤالي عن أي شيء.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -42,7 +41,6 @@ def handle_message(message):
 if __name__ == "__main__":
     print("جاري تشغيل سيرفر Keep-Alive...")
     keep_alive()
-    
     print("البوت يعمل الآن على تيليجرام...")
     bot.infinity_polling()
 
