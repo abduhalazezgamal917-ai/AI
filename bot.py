@@ -15,7 +15,7 @@ def ask_llama(text):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama-3.1-70b-versatile",
+        "model": "llama-3.3-70b-versatile",
         "messages": [{"role": "user", "content": text}]
     }
     
@@ -43,4 +43,5 @@ if __name__ == "__main__":
     keep_alive()
     print("البوت يعمل الآن على تيليجرام...")
     bot.infinity_polling()
+
 
