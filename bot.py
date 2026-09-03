@@ -15,7 +15,7 @@ def ask_llama(text):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama-3.3-70b-versatile",
+        "model": "llama-3.1-8b-instant",
         "messages": [{"role": "user", "content": text}]
     }
     
@@ -30,7 +30,7 @@ def ask_llama(text):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك! أنا بوت ذكاء اصطناعي مدعوم بنموذج Llama القوي. تفضل بسؤالي عن أي شيء.")
+    bot.reply_to(message, "أهلاً بك! أنا بوت ذكاء اصطناعي مدعوم بنموذج Llama السريع. تفضل بسؤالي عن أي شيء.")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
