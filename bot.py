@@ -8,23 +8,30 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 
-def get_exact_model():
+def get_chat_model():
     url = "https://api.groq.com/openai/v1/models"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             models = response.json().get("data", [])
-            if models:
-                # يأخذ أول نموذج متاح على مفتاحك مباشرة أياً كان اسمه
-                exact_id = models[0]["id"]
-                print(f"✅ النموذج المتاح على مفتاحك هو: {exact_id}")
-                return exact_id
+            # البحث عن أول نموذج مخصص للدردشة وتخطي الصوت والحماية
+            for model in models:
+                m_id = model["id"].lower()
+                if any(name in m_id for name in ["llama", "mixtral", "gemma", "qwen", "deepseek"]) and not any(bad in m_id for bad in ["whisper", "guard", "embed", "tts"]):
+                    print(f"✅ تم اختيار نموذج دردشة صالح: {model['id']}")
+                    return model["id"]
+            
+            # إذا لم يجد اسمًا معروفاً، يأخذ أول نموذج ليس له علاقة بالصوت أو الحماية
+            for model in models:
+                m_id = model["id"].lower()
+                if not any(bad in m_id for bad in ["whisper", "guard", "embed", "tts"]):
+                    return model["id"]
     except Exception as e:
-        print(f"خطأ: {e}")
-    return "error"
+        print(f"خطأ في جلب النماذج: {e}")
+    return "llama-3.1-8b-instant"
 
-ACTIVE_MODEL = get_exact_model()
+ACTIVE_MODEL = get_chat_model()
 
 def ask_ai(text):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -48,7 +55,7 @@ def ask_ai(text):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, f"أهلاً بك! النموذج النشط حالياً على مفتاحك هو:\n{ACTIVE_MODEL}")
+    bot.reply_to(message, f"أهلاً بك! النموذج النشط للدردشة الآن هو:\n{ACTIVE_MODEL}")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -59,8 +66,9 @@ def handle_message(message):
 if __name__ == "__main__":
     print("جاري تشغيل سيرفر Keep-Alive...")
     keep_alive()
-    print(f"البوت يعمل ويستخدم النموذج: {ACTIVE_MODEL}")
+    print(f"البوت يعمل ويستخدم نموذج الدردشة: {ACTIVE_MODEL}")
     bot.infinity_polling()
+
 
 
 
