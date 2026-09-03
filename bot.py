@@ -8,14 +8,36 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 
-def ask_llama(text):
+# جلب أول نموذج متاح وصحيح على مفتاحك تلقائياً
+def get_valid_model():
+    url = "https://api.groq.com/openai/v1/models"
+    headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            models = response.json().get("data", [])
+            # اختيار أول نموذج نصي متاح في الحساب
+            for model in models:
+                model_id = model["id"]
+                if "llama" in model_id or "mixtral" in model_id or "gemma" in model_id:
+                    print(f"✅ تم العثور على نموذج صالح: {model_id}")
+                    return model_id
+        print("⚠️ لم يتم العثور على نموذج، سيتم استخدام القيمة الافتراضية.")
+    except Exception as e:
+        print(f"خطأ في جلب النماذج: {e}")
+    return "llama-3.1-8b-instant"
+
+# تخزين النموذج الصحيح تلقائياً
+ACTIVE_MODEL = get_valid_model()
+
+def ask_ai(text):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama-3.1-8b-instant",
+        "model": ACTIVE_MODEL,
         "messages": [{"role": "user", "content": text}]
     }
     
@@ -30,18 +52,19 @@ def ask_llama(text):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك! أنا بوت ذكاء اصطناعي مدعوم بنموذج Llama السريع. تفضل بسؤالي عن أي شيء.")
+    bot.reply_to(message, f"أهلاً بك! أنا أعمل الآن بنموذج: {ACTIVE_MODEL}")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
     bot.send_chat_action(message.chat.id, 'typing')
-    ai_reply = ask_llama(message.text)
+    ai_reply = ask_ai(message.text)
     bot.reply_to(message, ai_reply)
 
 if __name__ == "__main__":
     print("جاري تشغيل سيرفر Keep-Alive...")
     keep_alive()
-    print("البوت يعمل الآن على تيليجرام...")
+    print(f"البوت يعمل ويستخدم النموذج: {ACTIVE_MODEL}")
     bot.infinity_polling()
+
 
 
