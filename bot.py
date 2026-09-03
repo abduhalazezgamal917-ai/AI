@@ -8,24 +8,23 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 
-def get_valid_model():
+def get_exact_model():
     url = "https://api.groq.com/openai/v1/models"
     headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
     try:
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             models = response.json().get("data", [])
-            for model in models:
-                model_id = model["id"]
-                # نتجنب نماذج الحماية، الصوت، أو النماذج غير المخصصة للدردشة
-                if "llama" in model_id and "guard" not in model_id and "whisper" not in model_id:
-                    print(f"✅ تم اختيار نموذج دردشة صالح: {model_id}")
-                    return model_id
+            if models:
+                # يأخذ أول نموذج متاح على مفتاحك مباشرة أياً كان اسمه
+                exact_id = models[0]["id"]
+                print(f"✅ النموذج المتاح على مفتاحك هو: {exact_id}")
+                return exact_id
     except Exception as e:
-        print(f"خطأ في جلب النماذج: {e}")
-    return "llama-3.3-70b-versatile"
+        print(f"خطأ: {e}")
+    return "error"
 
-ACTIVE_MODEL = get_valid_model()
+ACTIVE_MODEL = get_exact_model()
 
 def ask_ai(text):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -49,7 +48,7 @@ def ask_ai(text):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, f"أهلاً بك! أنا أعمل الآن بنموذج الدردشة: {ACTIVE_MODEL}")
+    bot.reply_to(message, f"أهلاً بك! النموذج النشط حالياً على مفتاحك هو:\n{ACTIVE_MODEL}")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -62,6 +61,7 @@ if __name__ == "__main__":
     keep_alive()
     print(f"البوت يعمل ويستخدم النموذج: {ACTIVE_MODEL}")
     bot.infinity_polling()
+
 
 
 
