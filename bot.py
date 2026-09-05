@@ -9,13 +9,12 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 
-# ترتيب أولوية النماذج - نجربهم فعلياً بطلب حقيقي بدل التخمين من الاسم
+# ترتيب أولوية النماذج - Groq أوقف نماذج Llama نهائياً (16 أغسطس 2026)
+# البدائل الرسمية المقترحة من Groq نفسه:
 PREFERRED_MODELS = [
-    "llama-3.3-70b-versatile",
-    "llama-3.1-70b-versatile",
-    "llama-3.1-8b-instant",
-    "mixtral-8x7b-32768",
-    "gemma2-9b-it",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.6-27b",
 ]
 
 def test_model(model_id):
@@ -43,7 +42,7 @@ def get_chat_model():
             print(f"✅ تم اختيار النموذج: {model_id}")
             return model_id
     print("⚠️ ما اشتغل أي نموذج من القائمة، رجعنا للاحتياطي")
-    return "llama-3.1-8b-instant"
+    return "openai/gpt-oss-20b"
 
 ACTIVE_MODEL = get_chat_model()
 
@@ -138,6 +137,7 @@ if __name__ == "__main__":
     keep_alive()
     print(f"البوت يعمل ويستخدم نموذج الدردشة: {ACTIVE_MODEL}")
     bot.infinity_polling()
+
 
 
 
