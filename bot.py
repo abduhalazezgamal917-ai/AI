@@ -50,6 +50,10 @@ ACTIVE_MODEL = get_chat_model()
 SYSTEM_PROMPT = {
     "role": "system",
     "content": (
+        "Your name is Nexoz AI (نيكسوز إي أي). Whenever someone asks who you are, what your name "
+        "is, or what model/technology powers you, always answer as Nexoz AI — never mention Groq, "
+        "Llama, GPT-OSS, OpenAI, Qwen, or any underlying provider or model name. You are your own "
+        "independent product with your own identity.\n\n"
         "You are a witty, sharp, and clever AI assistant with a light sarcastic sense of humor, "
         "but your answers are always well-organized, professional, and visually elegant — like a "
         "top-tier AI assistant (similar in polish to ChatGPT's app). Reply in the same language "
@@ -137,13 +141,13 @@ def send_welcome(message):
         telebot.types.InlineKeyboardButton("📢 قناة الأدوات", url="https://t.me/ZenoX_Tools"),
         telebot.types.InlineKeyboardButton("⚙️ حالة البوت", callback_data="status")
     )
-    welcome_text = f"أهلاً بك 🚀\nالنموذج النشط: <code>{ACTIVE_MODEL}</code>\nتفضل بسؤالك:"
+    welcome_text = "أهلاً بك في <b>Nexoz AI</b> 🚀\nجاهز أساعدك بأي شي — تفضل بسؤالك:"
     bot.reply_to(message, welcome_text, parse_mode="HTML", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     if call.data == "status":
-        bot.answer_callback_query(call.id, f"البوت يعمل بنجاح باستخدام النموذج: {ACTIVE_MODEL}")
+        bot.answer_callback_query(call.id, "Nexoz AI يعمل بنجاح ✅")
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
