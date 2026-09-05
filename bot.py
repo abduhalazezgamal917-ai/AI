@@ -9,44 +9,41 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 
-# ترتيب أولوية النماذج - نجرب الأقوى أولاً، ولو غير متاح ننزل للي بعده
+# ترتيب أولوية النماذج - نجربهم فعلياً بطلب حقيقي بدل التخمين من الاسم
 PREFERRED_MODELS = [
     "llama-3.3-70b-versatile",
     "llama-3.1-70b-versatile",
     "llama-3.1-8b-instant",
+    "mixtral-8x7b-32768",
+    "gemma2-9b-it",
 ]
 
-def get_chat_model():
-    url = "https://api.groq.com/openai/v1/models"
-    headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+def test_model(model_id):
+    """يرسل طلب تجريبي صغير جداً للتأكد إن النموذج فعلاً يقدر يرد على شات"""
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": model_id,
+        "messages": [{"role": "user", "content": "hi"}],
+        "max_tokens": 5
+    }
     try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            available_ids = [m["id"] for m in response.json().get("data", [])]
+        response = requests.post(url, headers=headers, json=data, timeout=10)
+        return response.status_code == 200
+    except Exception:
+        return False
 
-            # الخطوة 1: جرب النماذج المفضلة بالترتيب
-            for preferred in PREFERRED_MODELS:
-                if preferred in available_ids:
-                    print(f"✅ تم اختيار النموذج المفضل: {preferred}")
-                    return preferred
-
-            # الخطوة 2: لو ما لقينا أي وحد منها، دور على أي llama متاح
-            for m_id in available_ids:
-                low = m_id.lower()
-                if "llama" in low and not any(bad in low for bad in ["whisper", "guard", "embed", "tts"]):
-                    print(f"⚠️ استخدام بديل llama: {m_id}")
-                    return m_id
-
-            # الخطوة 3: أي نموذج دردشة صالح (آخر حل)
-            for m_id in available_ids:
-                low = m_id.lower()
-                if not any(bad in low for bad in ["whisper", "guard", "embed", "tts"]):
-                    print(f"⚠️ استخدام بديل عام: {m_id}")
-                    return m_id
-    except Exception as e:
-        print(f"خطأ في جلب النماذج: {e}")
-
-    return "llama-3.1-8b-instant"  # احتياطي أخير مضمون شغّال دايماً تقريباً
+def get_chat_model():
+    for model_id in PREFERRED_MODELS:
+        print(f"🔍 تجربة النموذج: {model_id}")
+        if test_model(model_id):
+            print(f"✅ تم اختيار النموذج: {model_id}")
+            return model_id
+    print("⚠️ ما اشتغل أي نموذج من القائمة، رجعنا للاحتياطي")
+    return "llama-3.1-8b-instant"
 
 ACTIVE_MODEL = get_chat_model()
 
@@ -141,6 +138,7 @@ if __name__ == "__main__":
     keep_alive()
     print(f"البوت يعمل ويستخدم نموذج الدردشة: {ACTIVE_MODEL}")
     bot.infinity_polling()
+
 
 
 
